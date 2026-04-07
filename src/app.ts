@@ -1,6 +1,8 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
+import { HTTPException } from 'hono/http-exception';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { authRouter } from '@/modules/auth/auth.module.js';
 import { AppException } from '@/core/exceptions.js';
 import { fail } from '@/core/response.js';
@@ -30,16 +32,20 @@ app.use('*', async (c, next) => {
 
 // --- 异常拦截 ---
 app.onError((err, c) => {
-  // 未处理错误的额外打印
-  if (!(err instanceof AppException)) {
-    console.error(`[Unhandled Error]`, err);
-  }
-
-  // 格式化输出
+  // 1. 处理自定义业务异常 (AppException 及其子类)
   if (err instanceof AppException) {
-    return c.json(fail(err.message, err.code), err.httpStatus as any);
+    return c.json(fail(err.message, err.code), err.status);
   }
 
+  // 2. 处理框架内置或其他第三方抛出的 HTTPException (如 JWT 验证失败)
+  if (err instanceof HTTPException) {
+    // 自动获取状态码并转换为 ContentfulStatusCode (忽略 1xx 等)
+    const status = err.status as ContentfulStatusCode;
+    return c.json(fail(err.message, status), status);
+  }
+
+  // 3. 处理常规未捕获异常 (Runtime Error)
+  console.error(`[Unhandled Error]`, err);
   return c.json(fail(err.message || '系统繁忙，请稍后再试', 500), 500);
 });
 
