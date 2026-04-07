@@ -1,8 +1,7 @@
 import { Hono } from 'hono';
-import { jwt } from 'hono/jwt';
 import { container } from 'tsyringe';
 import { AuthController } from './auth.controller.js';
-import { env } from '@/config/env.js';
+import { authGuard } from '@/core/middleware/auth.middleware.js';
 
 /**
  * 认证模块路由定义
@@ -17,8 +16,7 @@ const authController = container.resolve(AuthController);
 authRouter.post('/register', (c) => authController.register(c));
 authRouter.post('/login', (c) => authController.login(c));
 
-// 受保护路由 (使用内置 JWT 中间件)
-authRouter.use('/profile', jwt({ secret: env.JWT_SECRET, alg: 'HS256' }));
+// 受保护路由 (由 index.ts 中的全局鉴权统一管理)
 authRouter.get('/profile', (c) => authController.getProfile(c));
 
 export { authRouter };

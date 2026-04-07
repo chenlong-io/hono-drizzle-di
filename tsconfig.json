@@ -2,15 +2,18 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "NodeNext",
-    "strict": true,
+    "esModuleInterop": true,
     "verbatimModuleSyntax": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
     "types": ["node"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "outDir": "./dist",
+    "sourceMap": true,
     "rootDir": "./src",
     "paths": {
       "@/*": ["./src/*"]
