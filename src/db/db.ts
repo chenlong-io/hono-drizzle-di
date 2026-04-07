@@ -18,6 +18,22 @@ export class DatabaseProvider {
     });
     console.log('✅ Database connected');
   }
+
+  /**
+   * 优雅关闭数据库连接
+   */
+  async close() {
+    try {
+      // @ts-ignore
+      if (this.db?.$client) {
+        // @ts-ignore
+        await this.db.$client.end();
+        console.log('👋 Database connection closed');
+      }
+    } catch (err) {
+      console.error('❌ Error closing database:', err);
+    }
+  }
 }
 
 // 为了方便直接使用，也导出一个直接的 db 实例（可选）

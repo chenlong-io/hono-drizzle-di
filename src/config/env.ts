@@ -1,26 +1,27 @@
 import { z } from 'zod';
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// 根据 NODE_ENV 加载对应的 .env 文件
+const nodeEnv = process.env.NODE_ENV || 'development';
+dotenv.config({ path: path.resolve(process.cwd(), `.env.${nodeEnv}`) });
+// 同时加载默认的 .env 作为兜底
+dotenv.config();
 
 /**
  * 环境变量校验 Schema
- * 确保应用启动前，所有必需的配置都已正确设置
  */
 const envSchema = z.object({
-  // 服务端口
-  PORT: z.string().transform(Number).default(3000),
-  // 数据库连接地址
-  DATABASE_URL: z.string().url('DATABASE_URL 必须是一个有效的 URL'),
-  // JWT 密钥
+  PORT: z.string().transform(Number).default(3333),
+  DATABASE_URL: z.url({ message: 'DATABASE_URL 必须是一个有效的 URL' }),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET 至少需要 32 位以保证安全'),
-  // 环境
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
 
-// 解析并校验环境变量
 const parsedEnv = envSchema.safeParse(process.env);
 
 if (!parsedEnv.success) {
-  console.error('❌ 环境参数校验失败:', parsedEnv.error.format());
+  console.error('❌ 环境参数校验失败:', JSON.stringify(z.treeifyError(parsedEnv.error), null, 2));
   process.exit(1);
 }
 
